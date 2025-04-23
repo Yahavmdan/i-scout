@@ -377,6 +377,7 @@ export class GameComponent implements OnInit, OnDestroy {
   getPlayersForSelectedTeam(selectorIndex: 0 | 1): Player[] {
     const team = this.getSelectedTeam(selectorIndex);
     return team?.players || []; // Return players array or empty array
+
   }
 
   resetPlayerSelection(): void {
