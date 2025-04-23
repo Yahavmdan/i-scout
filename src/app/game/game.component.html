@@ -1,0 +1,231 @@
+<div class="game-container">
+  <!-- Show loading or error if settings are not available -->
+  <div *ngIf="!gameSettings" class="loading-error">
+    <p>Loading game settings or no settings saved...</p>
+    <!-- TODO: Add more specific error handling -->
+  </div>
+
+  <!-- Show game content only if settings are loaded -->
+  <div *ngIf="gameSettings" class="game-content">
+    <h2>Game On!</h2>
+
+    <!-- Team Selection -->
+    <div class="card team-selection-section form-section" [class.disabled-section]="isTimerRunning || isTimedPlayOver">
+      <h2>Select Teams</h2>
+      <fieldset [disabled]="isTimerRunning || isTimedPlayOver">
+        <div class="team-selectors">
+          <div class="form-field">
+            <label for="team1">Team 1:</label>
+            <select id="team1" (change)="onTeamSelect(0, $event)"
+                    [value]="selectedTeamIndices[0] !== null ? selectedTeamIndices[0] : -1">
+              <option value="-1" disabled>-- Select Home Team --</option>
+              <option *ngFor="let team of gameSettings.teams; let i = index" [value]="i"
+                      [disabled]="i === selectedTeamIndices[1] || isTimerRunning">
+                {{ team.name || 'Team ' + (i + 1) }}
+              </option>
+            </select>
+          </div>
+
+          <span class="vs-separator">VS</span>
+
+          <div class="form-field">
+            <label for="team2">Team 2:</label>
+            <select id="team2" (change)="onTeamSelect(1, $event)"
+                    [value]="selectedTeamIndices[1] !== null ? selectedTeamIndices[1] : -1">
+              <option value="-1" disabled>-- Select Away Team --</option>
+              <option *ngFor="let team of gameSettings.teams; let i = index" [value]="i"
+                      [disabled]="i === selectedTeamIndices[0] || isTimerRunning">
+                {{ team.name || 'Team ' + (i + 1) }}
+              </option>
+            </select>
+          </div>
+        </div>
+        <!-- TODO: Add validation message if teams are the same -->
+      </fieldset>
+    </div>
+
+    <!-- Timer Section -->
+    <div class="card timer-section form-section text-center">
+      <h2>Timer <span *ngIf="isExtraTimeActive" class="extra-time-indicator">(+ET)</span></h2>
+      <div class="timer-display" [class.finished]="isTimedPlayOver && !isFinalResultDeclared">
+        {{ timerValue | formatTime }}
+      </div>
+
+      <!-- Regular Timer Controls (Hidden during prompt/end) -->
+      <div class="timer-controls" *ngIf="!extraTimeRequested && !isTimedPlayOver">
+        <!-- Disable Start if timer is 0 OR teams not selected -->
+        <button
+          (click)="startTimer()"
+          *ngIf="!isTimerRunning"
+          [disabled]="timerValue <= 0 || selectedTeamIndices[0] === -1 || selectedTeamIndices[1] === -1"
+          title="Start Timer (requires teams selected)">
+          ▶️
+        </button>
+        <!-- Use icon for Pause -->
+        <button (click)="pauseTimer()" *ngIf="isTimerRunning" title="Pause Timer">⏸️</button>
+        <!-- Use icon for Reset -->
+        <button (click)="resetTimer()" title="Reset Timer">🔄</button>
+
+        <!-- Manually End Game Button -->
+        <button class="finish-now-button"
+                (click)="endTimedPlayManually()"
+                *ngIf="isTimerRunning"
+                title="End Timed Play Now">
+          🏁 Finish Now
+        </button>
+      </div>
+
+      <!-- Extra Time Prompt -->
+      <div class="extra-time-prompt" *ngIf="extraTimeRequested && !isExtraTimeActive && !isTimedPlayOver">
+        <p>Main time finished. Add 2 minutes extra time?</p>
+        <button (click)="addExtraTime()" class="extra-time-yes">Yes</button>
+        <button (click)="endGameWithoutExtraTime()" class="extra-time-no">No</button>
+      </div>
+
+      <!-- Winner Declaration Section -->
+      <div class="card winner-declaration-section form-section"
+           *ngIf="isTimedPlayOver && !isFinalResultDeclared && selectedTeamIndices[0] !== null && selectedTeamIndices[1] !== null">
+        <h2>Declare Winner</h2>
+        <p>Timed play is over. Select the final winner (e.g., after penalties):</p>
+        <button (click)="declareWinner(selectedTeamIndices[0]!)">Declare {{ getTeamName(selectedTeamIndices[0]!) }}
+          Winner
+        </button>
+        <button (click)="declareWinner(selectedTeamIndices[1]!)">Declare {{ getTeamName(selectedTeamIndices[1]!) }}
+          Winner
+        </button>
+      </div>
+
+      <!-- Game Finished Message -->
+      <div class="card game-finished-message text-center" *ngIf="isFinalResultDeclared">
+        <h2>Game Finished!</h2>
+        <p *ngIf="winnerTeamIndex !== null">
+          Winner: {{ getTeamName(winnerTeamIndex) }}
+        </p>
+        <button (click)="resetTimer()">Start New Game</button>
+      </div>
+    </div>
+
+    <!-- Scoring Section -->
+    <div class="card scoring-section form-section" *ngIf="gameSettings && gameSettings.teams"
+         [class.disabled-section]="isFinalResultDeclared">
+      <h2>Scoreboard</h2>
+      <fieldset [disabled]="isFinalResultDeclared">
+        <div class="scoreboard">
+          <!-- Team 1 Score -->
+          <div class="team-score">
+            <div class="team-score-display">
+              <span class="team-name">
+                {{ selectedTeamIndices[0] !== -1 ? (gameSettings.teams[selectedTeamIndices[0]!].name || 'Team 1') : 'Team 1' }}
+              </span>
+              <div class="score-controls">
+                <button
+                  class="goal-button"
+                  (click)="incrementScore(0)"
+                  [disabled]="selectedTeamIndices[0] === -1 || isFinalResultDeclared"
+                  title="Add Goal (Team 1)">
+                  +
+                </button>
+                <span class="score">{{ teamScores[0] }}</span>
+                <button
+                  class="goal-button deduct-button"
+                  (click)="decrementScore(0)"
+                  [disabled]="selectedTeamIndices[0] === -1 || teamScores[0] <= 0 || isFinalResultDeclared"
+                  title="Deduct Goal (Team 1)">
+                  -
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Team 2 Score -->
+          <div class="team-score">
+            <div class="team-score-display">
+              <span class="team-name">
+                {{ selectedTeamIndices[1] !== -1 ? (gameSettings.teams[selectedTeamIndices[1]!].name || 'Team 2') : 'Team 2' }}
+              </span>
+              <div class="score-controls">
+                <button
+                  class="goal-button"
+                  (click)="incrementScore(1)"
+                  [disabled]="selectedTeamIndices[1] === -1 || isFinalResultDeclared"
+                  title="Add Goal (Team 2)">
+                  +
+                </button>
+                <span class="score">{{ teamScores[1] }}</span>
+                <button
+                  class="goal-button deduct-button"
+                  (click)="decrementScore(1)"
+                  [disabled]="selectedTeamIndices[1] === -1 || teamScores[1] <= 0 || isFinalResultDeclared"
+                  title="Deduct Goal (Team 2)">
+                  -
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Player Scoring Section -->
+        <div class="player-scoring-section form-section" [class.disabled-section]="isFinalResultDeclared">
+          <h2>Player Actions</h2>
+          <fieldset [disabled]="isFinalResultDeclared">
+            <div class="actions-layout">
+              <!-- Player List (Team 1) -->
+              <div class="player-list-container">
+                <div class="player-list" *ngIf="getSelectedTeam(0) as team1">
+                  <h5>{{ team1.name || 'Team 1' }}</h5>
+                  <ul>
+                    <li
+                      *ngFor="let player of getPlayersForSelectedTeam(0); let pIndex = index"
+                      (click)="selectPlayer(selectedTeamIndices[0]!, pIndex)"
+                      [class.selected]="selectedPlayerTeamIndex === selectedTeamIndices[0] && selectedPlayerIndex === pIndex"
+                      [class.disabled]="isFinalResultDeclared"
+                      title="{{ isFinalResultDeclared ? 'Game Finished' : 'Select player to assign action'}}">
+                      {{ player.name }} ({{ player.score || 0 }})
+                    </li>
+                  </ul>
+                </div>
+
+                <!-- Team 2 Player List -->
+                <div class="player-list" *ngIf="getSelectedTeam(1) as team2">
+                  <h5>{{ team2.name || 'Team 2' }}</h5>
+                  <ul>
+                    <li
+                      *ngFor="let player of getPlayersForSelectedTeam(1); let pIndex = index"
+                      (click)="selectPlayer(selectedTeamIndices[1]!, pIndex)"
+                      [class.selected]="selectedPlayerTeamIndex === selectedTeamIndices[1] && selectedPlayerIndex === pIndex"
+                      [class.disabled]="isFinalResultDeclared"
+                      title="{{ isFinalResultDeclared ? 'Game Finished' : 'Select player to assign action'}}">
+                      {{ player.name }} ({{ player.score || 0 }})
+                    </li>
+                  </ul>
+                </div>
+              </div>
+
+              <!-- Scoring Action Buttons -->
+              <div class="scoring-actions" *ngIf="selectedPlayer && !isFinalResultDeclared">
+                <h6>Actions for: {{ selectedPlayer.name }}</h6>
+                <div class="action-buttons">
+                  <button
+                    [ngClass]="action.points > 0 ? 'positive-score' : action.points < 0 ? 'negative-score' : 'middle-score'"
+                    *ngFor="let action of scoringParametersArray"
+                    (click)="applyScoreAction(action.name, action.points)"
+                    [disabled]="isFinalResultDeclared"
+                    title="{{ action.name | formatActionName }}">
+                    {{ action.name | formatActionName }}
+                    ({{ action.points }} points)
+                  </button>
+                </div>
+              </div>
+              <div class="scoring-actions-placeholder" *ngIf="selectedPlayer === null && !isFinalResultDeclared">
+                <p>Select a player from the lists above to assign scoring actions.</p>
+              </div>
+              <div class="scoring-actions-placeholder" *ngIf="isFinalResultDeclared">
+                <p>Game is finished. Reset to start a new game.</p>
+              </div>
+            </div>
+          </fieldset>
+        </div>
+      </fieldset>
+    </div>
+  </div>
+</div>

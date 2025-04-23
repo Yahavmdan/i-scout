@@ -1,0 +1,14 @@
+.app-header {
+  background-color: var(--primary-color);
+  color: white;
+  padding: 1rem 1.5rem;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  margin-bottom: 2rem;
+}
+
+.app-header h1 {
+  margin: 0;
+  font-size: 1.8rem;
+  font-weight: 500;
+  color: white; /* Ensure h1 color overrides global styles */
+}

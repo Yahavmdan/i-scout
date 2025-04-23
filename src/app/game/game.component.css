@@ -1,0 +1,372 @@
+:host {
+  display: block;
+}
+
+fieldset {
+  border: none;
+  padding: 0;
+}
+
+/* Use the card styles defined globally */
+.card {
+  margin-bottom: 1.5rem; /* Consistent spacing between cards */
+}
+
+.game-layout {
+  /* No specific layout needed here if components are stacked vertically */
+  /* If a grid/flex is needed later, it can be added */
+}
+
+.action-buttons {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+/* Section Headers inside cards */
+.card h2 {
+  margin-bottom: 1rem;
+  font-size: 1.5rem;
+  color: var(--primary-color);
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+/* Team Selectors Section */
+.team-selectors .selector-container {
+  display: flex;
+  flex-wrap: wrap; /* Allow wrapping on small screens */
+  justify-content: space-around;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.team-selector {
+  flex: 1 1 200px; /* Allow flex grow/shrink, base width */
+}
+
+/* Timer Section */
+.timer-section {
+  /* text-center is applied via class */
+}
+
+.timer-display {
+  font-size: 3rem;
+  font-weight: 500;
+  margin-bottom: 1rem;
+  padding: 1rem;
+  background-color: #ecf0f1; /* Light gray */
+  border-radius: 6px;
+  display: inline-block; /* Center inline block */
+  min-width: 150px;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.timer-display.extra-time {
+  background-color: #fef9e7; /* Light yellow for ET */
+}
+
+.timer-display.finished {
+  color: #e74c3c; /* Red when finished */
+  background-color: #fdedec; /* Light red */
+}
+
+.extra-time-indicator {
+  font-size: 1rem;
+  font-weight: normal;
+  margin-left: 0.5rem;
+  color: var(--accent-color); /* Orange */
+}
+
+.timer-controls {
+  margin-bottom: 1rem; /* Space below controls */
+}
+
+.timer-controls button {
+  margin: 0 0.3rem;
+  font-size: 1.2rem; /* Reset font size, 2rem was likely too big */
+  padding: 0.5rem;
+  line-height: 1;
+  min-width: 40px;
+  vertical-align: middle;
+  background: unset; /* Unset background for all buttons by default */
+  border: none; /* Remove default browser borders */
+  color: var(--primary-color); /* Use a theme color for icons */
+  cursor: pointer; /* Ensure cursor changes */
+}
+
+.timer-controls button:disabled {
+  color: var(--text-color-disabled);
+  cursor: not-allowed;
+}
+
+/* Specific Button Styles in Timer Controls */
+.finish-now-button {
+  background-color: var(--accent-color);
+  font-size: 0.9rem; /* Smaller text for this button */
+  padding: 0.6rem 1rem;
+}
+
+.finish-now-button:hover:not(:disabled) {
+  background-color: #d68910; /* Darker orange */
+}
+
+/* Extra Time Prompt Styles */
+.extra-time-prompt {
+  margin-top: 1rem;
+  padding: 1rem;
+  background-color: #f9f9f9;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+}
+
+.extra-time-prompt button {
+  margin: 0 0.5rem;
+}
+
+.extra-time-yes {
+  background-color: var(--secondary-color); /* Green */
+}
+.extra-time-yes:hover:not(:disabled) {
+  background-color: #27ae60; /* Darker Green */
+}
+.extra-time-no {
+  background-color: #e74c3c; /* Red */
+}
+.extra-time-no:hover:not(:disabled) {
+  background-color: #c0392b; /* Darker Red */
+}
+
+/* Scoreboard Section */
+.scoreboard-section .scoreboard-container {
+  display: flex;
+  flex-wrap: wrap; /* Allow wrapping */
+  justify-content: space-around;
+  align-items: center;
+  text-align: center;
+  gap: 1.5rem; /* Space between team scores */
+}
+
+.scoreboard {
+  display: flex;
+  justify-content: space-evenly;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.team-score {
+  /* Remove flex properties, let the inner display handle layout */
+  text-align: center; /* Center the content within the column */
+}
+
+.team-score-display {
+  display: inline-flex; /* Use inline-flex to contain name and controls */
+  flex-direction: column; /* Stack name above controls */
+  align-items: center; /* Center items horizontally */
+}
+
+.team-score .team-name {
+  display: block;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+  font-size: 1.2rem; /* Slightly larger name */
+  min-height: 1.7rem; /* Reserve space even if name is short */
+}
+
+.score-controls {
+  display: flex;
+  align-items: center; /* Vertically align buttons and score */
+  justify-content: center;
+}
+
+.team-score .score {
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin: 0 1rem; /* Space around score */
+  display: inline-block;
+}
+
+/* Score Increment/Decrement Buttons */
+.goal-button {
+  padding: 0.4rem 0.8rem;
+  margin: 0 0.15rem; /* Tighter spacing */
+  vertical-align: middle;
+  background: unset;
+  color: #00c500;
+  font-size: 40px;
+  &:hover {
+    background: unset;
+  }
+}
+
+.deduct-button {
+  color: red;
+}
+
+/* Player Actions Section Styles */
+.player-actions-section .actions-layout {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+}
+
+.player-list-container h5 {
+  font-size: 1.2rem;
+  margin-bottom: 0.75rem;
+  color: var(--primary-color);
+}
+
+.player-list ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  max-height: 300px; /* Limit height and add scroll */
+  overflow-y: auto;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+}
+
+.player-list li {
+  padding: 0.6rem 0.8rem;
+  cursor: pointer;
+  border-bottom: 1px solid var(--border-color);
+  transition: background-color 0.2s ease, color 0.2s ease;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.player-list li:last-child {
+  border-bottom: none;
+}
+
+.player-list li:hover {
+  background-color: #eaf2f8; /* Light blue hover */
+}
+
+.player-list li.selected {
+  background-color: var(--primary-color);
+  color: white;
+  font-weight: 500;
+}
+
+.player-list li .player-score {
+  font-size: 0.9em;
+  color: #7f8c8d; /* Muted color for score */
+  margin-left: 1rem;
+  background-color: #f1f1f1;
+  padding: 0.1rem 0.4rem;
+  border-radius: 3px;
+  min-width: 20px; /* Ensure some width */
+  text-align: center;
+}
+
+.player-list li.selected .player-score {
+ color: var(--primary-color); /* Darker score text when selected */
+ background-color: #e0e0e0; /* Slightly darker background */
+}
+
+.scoring-buttons {
+  text-align: center;
+  margin-top: 1rem;
+}
+
+.scoring-buttons h5 {
+  margin-bottom: 0.75rem;
+  font-size: 1.2rem;
+  color: var(--primary-color);
+}
+
+.scoring-buttons button {
+  margin: 0.25rem;
+  background-color: var(--secondary-color); /* Green */
+}
+
+.scoring-buttons button:hover:not(:disabled) {
+  background-color: #27ae60; /* Darker Green */
+}
+
+/* Winner Declaration Section Styles */
+.winner-declaration-section p {
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+.winner-declaration-section .winner-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.winner-declaration-section .winner-buttons button {
+  background-color: var(--secondary-color);
+}
+
+.winner-declaration-section .winner-buttons button:hover:not(:disabled) {
+  background-color: #27ae60;
+}
+
+/* Game Result Message Styles */
+.game-result-message {
+  /* text-center is applied via class */
+  background-color: #eafaf1; /* Light green background */
+  border-left: 5px solid var(--secondary-color);
+  padding: 1.5rem;
+}
+
+.game-result-message .final-score {
+  font-size: 1.3rem;
+  margin-bottom: 0.5rem;
+  /*color: var(--text-color-secondary);*/
+}
+
+.game-result-message .winner-announcement {
+  font-size: 1.5rem;
+  font-weight: 500;
+  color: var(--secondary-color);
+  margin-bottom: 1rem;
+}
+
+/* Utility Styles */
+.info-text {
+  font-style: italic;
+  color: #7f8c8d;
+  margin-top: 1rem;
+  text-align: center;
+  display: block; /* Ensure it takes full width */
+}
+
+.disabled-section {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+/* Make selects look disabled too */
+.disabled-section select {
+  background-color: #eee;
+}
+
+/* Responsive Styles */
+@media (max-width: 768px) {
+  .game-layout,
+  .player-actions-section .actions-layout {
+    grid-template-columns: 1fr; /* Stack elements */
+  }
+
+  .team-selectors .selector-container,
+  .scoreboard-section .scoreboard-container {
+    /* Already handle wrapping */
+  }
+
+  .team-score .score {
+    font-size: 2rem;
+  }
+
+  .timer-display {
+    font-size: 2.5rem;
+  }
+
+  .card h2 {
+    font-size: 1.3rem;
+  }
+}
