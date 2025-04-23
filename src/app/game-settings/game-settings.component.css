@@ -173,20 +173,6 @@ form > button {
   justify-content: flex-end; /* Align buttons to the right */
 }
 
-/* Style for the reset action buttons container */
-.reset-actions {
-  margin-top: 1rem; /* Space above reset buttons */
-  justify-content: center; /* Center the reset buttons */
-}
-
-button.secondary {
-  background-color: #7f8c8d; /* Gray */
-}
-
-button.secondary:hover:not(:disabled) {
-  background-color: #626e6e; /* Darker Gray */
-}
-
 /* Danger button style */
 .button-danger {
   background-color: var(--danger-color);
@@ -200,6 +186,47 @@ button.secondary:hover:not(:disabled) {
 .button-danger:disabled {
   background-color: var(--button-disabled-background); /* Use general disabled background */
   color: var(--text-color-disabled);
+}
+
+/* Style for the reset action buttons container */
+.reset-actions {
+  margin-top: 2rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border-color);
+  display: flex;
+  flex-direction: column; /* Stack confirmations vertically */
+  gap: 1rem;
+}
+
+.confirmation-box {
+  border: 1px solid var(--danger-color);
+  border-radius: 5px;
+  padding: 1rem;
+  background-color: #fbeae5; /* Light red background */
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.confirmation-box label {
+  font-weight: bold;
+  color: var(--danger-color);
+}
+
+.confirmation-box input[type="text"] {
+  border-color: var(--danger-color);
+}
+
+.confirmation-box button {
+  margin-top: 0.5rem; /* Add some space before buttons */
+}
+
+.confirmation-box .button-secondary {
+  background-color: #bdc3c7; /* Grey for cancel */
+}
+
+.confirmation-box .button-secondary:hover {
+  background-color: #95a5a6;
 }
 
 @media (max-width: 768px) {

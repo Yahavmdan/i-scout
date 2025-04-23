@@ -118,8 +118,35 @@
     </div>
     <!-- Local Storage Reset -->
     <div class="form-actions reset-actions">
-      <button type="button" class="button button-danger" (click)="clearGameSettings()">Clear Saved Settings</button>
-      <button type="button" class="button button-danger" (click)="clearGameHistory()">Clear Game History</button>
+      <!-- Settings Deletion -->
+      <div *ngIf="!confirmingDeleteSettings">
+        <button type="button" class="button button-danger" (click)="requestClearSettings()">
+          🗑️ Clear Saved Settings
+        </button>
+      </div>
+      <div *ngIf="confirmingDeleteSettings" class="confirmation-box">
+        <label for="confirmSettingsDelete">Type "{{CONFIRMATION_PHRASE}}" to confirm:</label>
+        <input id="confirmSettingsDelete" type="text" [(ngModel)]="deleteConfirmationInput" name="confirmSettingsInput" autocomplete="off">
+        <button type="button" class="button button-danger" (click)="confirmDelete('settings')">
+          🗑️ Confirm Delete Settings
+        </button>
+        <button type="button" class="button button-secondary" (click)="cancelDelete()">Cancel</button>
+      </div>
+
+      <!-- History Deletion -->
+      <div *ngIf="!confirmingDeleteHistory">
+        <button type="button" class="button button-danger" (click)="requestClearHistory()">
+          🗑️ Clear Game History
+        </button>
+      </div>
+      <div *ngIf="confirmingDeleteHistory" class="confirmation-box">
+        <label for="confirmHistoryDelete">Type "{{CONFIRMATION_PHRASE}}" to confirm:</label>
+        <input id="confirmHistoryDelete" type="text" [(ngModel)]="deleteConfirmationInput" name="confirmHistoryInput" autocomplete="off">
+        <button type="button" class="button button-danger" (click)="confirmDelete('history')">
+          🗑️ Confirm Delete History
+        </button>
+        <button type="button" class="button button-secondary" (click)="cancelDelete()">Cancel</button>
+      </div>
     </div>
   </form>
 </div>

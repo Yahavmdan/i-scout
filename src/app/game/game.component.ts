@@ -5,17 +5,7 @@ import { FormatTimePipe } from '../shared/pipes/format-time.pipe';
 import { FormatActionNamePipe } from '../shared/pipes/format-action-name.pipe';
 import { Player } from '../models/player.model';
 import { Team } from '../models/team.model';
-
-// Interface for storing game results
-interface GameRecord {
-  gameId: string; // Unique ID for the game (e.g., timestamp)
-  startTime: number;
-  endTime: number;
-  team1: { index: number; name: string; score: number; players: Player[] };
-  team2: { index: number; name: string; score: number; players: Player[] };
-  winnerTeamIndex: number | null;
-  extraTimePlayed: boolean;
-}
+import { GameRecord } from '../models/game-record.model';
 
 @Component({
   selector: 'app-game',

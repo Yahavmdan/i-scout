@@ -4,6 +4,7 @@ import {Subscription} from 'rxjs';
 import {Router} from '@angular/router'; // Import Router
 import {debounceTime, distinctUntilChanged} from 'rxjs/operators';
 import {CommonModule} from '@angular/common'; // Import CommonModule
+import {FormsModule} from '@angular/forms'; // Import FormsModule
 import {Player, PlayerPosition} from '../models/player.model';
 import {Team} from '../models/team.model';
 import {ScoringParameterDefinition} from '../models/scoring-parameter-definition.model';
@@ -15,7 +16,8 @@ import {GameSettings} from '../models/game-settings.model';
   standalone: true,
   imports: [
     ReactiveFormsModule,
-    CommonModule
+    CommonModule,
+    FormsModule // Add FormsModule for ngModel
   ],
   templateUrl: './game-settings.component.html',
   styleUrls: ['./game-settings.component.css'] // Use styleUrls with an array
@@ -24,6 +26,12 @@ export class GameSettingsComponent implements OnInit, OnDestroy {
   settingsForm!: FormGroup;
   private valueChangesSub: Subscription | undefined;
   private defaultTeamColors = ['Red', 'Blue', 'Green', 'Yellow', 'Black', 'White', 'Orange', 'Purple', 'Pink', 'Brown'];
+
+  // Confirmation state
+  confirmingDeleteSettings = false;
+  confirmingDeleteHistory = false;
+  deleteConfirmationInput = '';
+  readonly CONFIRMATION_PHRASE = 'delete this';
 
   scoringParameters: ScoringParameterDefinition[] = [
     {key: 'goals', label: 'Goal'},
@@ -250,7 +258,7 @@ export class GameSettingsComponent implements OnInit, OnDestroy {
       numPlayersPerTeam: defaultSettings.numPlayersPerTeam,
       scoring: defaultScoring,
       // Team and Player arrays are cleared, will be rebuilt by updatePlayerListAndTeams
-    }, { emitEvent: false }); // Avoid triggering value changes during patch
+    }, { emitEvent: false }); // Avoid triggering valueChanges during patch
 
     // 4. Explicitly update team/player arrays based on the new counts
     this.updateTeamNameControls(defaultSettings.numTeams);
@@ -266,41 +274,96 @@ export class GameSettingsComponent implements OnInit, OnDestroy {
   /**
    * Clears the saved game settings from local storage.
    */
-  clearGameSettings(): void {
-    localStorage.removeItem('iScoutGameSettings');
-    // Optionally, provide user feedback (e.g., using a snackbar or alert)
-    console.log('Saved game settings cleared.');
-    // Maybe reset the form to defaults after clearing?
-    // this.loadDefaultSettings();
+  requestClearSettings(): void {
+    this.cancelDelete(); // Ensure only one confirmation is active
+    this.confirmingDeleteSettings = true;
   }
 
   /**
    * Clears the game history from local storage.
    */
-  clearGameHistory(): void {
-    localStorage.removeItem('gameHistory');
-    // Optionally, provide user feedback
-    console.log('Game history cleared.');
+  requestClearHistory(): void {
+    this.cancelDelete(); // Ensure only one confirmation is active
+    this.confirmingDeleteHistory = true;
+  }
+
+  confirmDelete(type: 'settings' | 'history'): void {
+    if (this.deleteConfirmationInput.toLowerCase() === this.CONFIRMATION_PHRASE) {
+      if (type === 'settings') {
+        this.performClearSettings();
+      } else if (type === 'history') {
+        this.performClearHistory();
+      }
+      this.cancelDelete(); // Reset state after successful delete
+    } else {
+      // Optional: Add feedback if the input is wrong
+      alert('Confirmation text does not match. Please type "delete this".');
+      this.deleteConfirmationInput = ''; // Clear input on mismatch
+    }
+  }
+
+  cancelDelete(): void {
+    this.confirmingDeleteSettings = false;
+    this.confirmingDeleteHistory = false;
+    this.deleteConfirmationInput = '';
+  }
+
+  // --- Actual Local Storage Clearing ---
+
+  private performClearSettings(): void {
+    console.log('Attempting to clear saved settings...');
+    try {
+      localStorage.removeItem('iScoutGameSettings');
+      console.log('Saved settings cleared from local storage.');
+      // Reload the component or reset the form to defaults after clearing
+      // Option 1: Reload (simple but full page refresh)
+      // window.location.reload();
+      // Option 2: Reset form to initial/default state
+      // this.settingsForm.reset(); // Reset form state
+      this.loadDefaultSettings(); // Reload defaults explicitly
+      alert('Saved game settings have been cleared.');
+    } catch (e) {
+      console.error('Error clearing saved settings from local storage:', e);
+      alert('Failed to clear saved settings.');
+    }
+  }
+
+  private performClearHistory(): void {
+    console.log('Attempting to clear game history...');
+    try {
+      localStorage.removeItem('gameHistory'); // Correct key: gameHistory
+      console.log('Game history cleared from local storage.');
+      alert('Game history has been cleared.');
+    } catch (e) {
+      console.error('Error clearing game history from local storage:', e);
+      alert('Failed to clear game history.');
+    }
   }
 
   private initForm(): void {
+    // Define default values (matching loadDefaultSettings)
+    const defaultNumTeams = 3; // Updated to match loadDefaultSettings
+    const defaultPlayersPerTeam = 4; // Updated to match loadDefaultSettings
+    const defaultGameDuration = 7; // Updated to match loadDefaultSettings
+    const defaultScoring = this.getDefaultScoringValues();
+
     this.settingsForm = this.fb.group({
-      numTeams: [2, [Validators.required, Validators.min(2), Validators.max(6)]],
-      numPlayersPerTeam: [11, [Validators.required, Validators.min(1), Validators.max(11)]],
-      gameDuration: [7, [Validators.required, Validators.min(1), Validators.max(90)]],
-      scoring: this.fb.group(this.buildScoringControls()), // Build controls first
-      teams: this.fb.array([]), // Initialize empty
-      players: this.fb.array([]), // Initialize empty
+      numTeams: [defaultNumTeams, [Validators.required, Validators.min(1), Validators.max(10)]],
+      numPlayersPerTeam: [defaultPlayersPerTeam, [Validators.required, Validators.min(1), Validators.max(11)]],
+      gameDuration: [defaultGameDuration, [Validators.required, Validators.min(5), Validators.max(180)]],
+      scoring: this.fb.group(this.buildScoringControls()), // Structure built, values patched below
+      teams: this.fb.array([]), // Initially empty, populated by updateTeamNameControls
+      players: this.fb.array([]), // Initially empty, populated by updatePlayerListAndTeams
     });
 
-    // Patch default scoring values after controls are built
-    this.settingsForm.get('scoring')?.patchValue(this.getDefaultScoringValues());
+    // Patch the scoring controls with default values
+    this.settingsForm.get('scoring')?.patchValue(defaultScoring, { emitEvent: false });
 
-    // Populate initial teams/players based on default counts
-    const initialNumTeams = this.settingsForm.get('numTeams')?.value || 2;
-    const initialNumPlayers = this.settingsForm.get('numPlayersPerTeam')?.value || 11;
-    this.updateTeamNameControls(initialNumTeams);
-    this.updatePlayerListAndTeams();
+    // Add listeners AFTER the form is created
+    this.settingsForm.get('numTeams')?.valueChanges.pipe(distinctUntilChanged()).subscribe(() => this.updatePlayerListAndTeams());
+    this.settingsForm.get('numPlayersPerTeam')?.valueChanges.pipe(distinctUntilChanged()).subscribe(() => this.updatePlayerListAndTeams());
+
+    this.updatePlayerListAndTeams(); // Initial population based on the default values set above
   }
 
   private loadGameSettings(): void {

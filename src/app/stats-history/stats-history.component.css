@@ -1,7 +1,205 @@
 .stats-history-container {
-  max-width: 1100px;
-  margin: 2rem auto;
-  padding: 2rem;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
 }
 
-/* Add more specific styles as needed */
+.loading-message,
+.error-message,
+.no-data-message {
+  text-align: center;
+  padding: 2rem;
+  font-style: italic;
+  color: var(--text-color);
+}
+
+.error-message {
+  color: var(--danger-color);
+  font-weight: bold;
+}
+
+.daily-stats-list {
+  display: grid;
+  gap: 1.5rem;
+  /* Responsive grid - adjust columns as needed */
+  /* grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); */
+}
+
+.daily-stats-card {
+  padding: 1rem 1.5rem;
+  border: 1px solid var(--border-color);
+  border-radius: 5px;
+  background-color: var(--card-background);
+}
+
+.daily-stats-card h3 {
+  margin-top: 0;
+  margin-bottom: 1rem;
+  color: var(--primary-color);
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 0.5rem;
+}
+
+.daily-stats-card h4 {
+  margin-top: 1.5rem;
+  margin-bottom: 0.5rem;
+  color: var(--text-color);
+}
+
+.player-scores-table-container {
+  max-height: 300px; /* Limit height and add scroll if needed */
+  overflow-y: auto;
+  border: 1px solid var(--border-color);
+  margin-top: 0.5rem;
+}
+
+.player-scores-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.player-scores-table th,
+.player-scores-table td {
+  text-align: left !important; /* Ensure left alignment */
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+/* Specific column widths */
+.player-scores-table th:nth-child(1),
+.player-scores-table td:nth-child(1) {
+  width: 40%; /* Player Name */
+}
+
+.player-scores-table th:nth-child(2),
+.player-scores-table td:nth-child(2) {
+  width: 15%; /* Performance Score */
+  text-align: center !important; /* Center performance score */
+}
+
+.player-scores-table th:nth-child(3),
+.player-scores-table td:nth-child(3),
+.player-scores-table th:nth-child(4),
+.player-scores-table td:nth-child(4),
+.player-scores-table th:nth-child(5),
+.player-scores-table td:nth-child(5),
+.player-scores-table th:nth-child(6),
+.player-scores-table td:nth-child(6) {
+  width: 15%; /* Score, Wins, Losses, Games Played */
+  text-align: center !important; /* Also center raw score and games */
+}
+
+/* Responsive adjustments for smaller screens */
+@media (max-width: 600px) {
+  .player-scores-table th,
+  .player-scores-table td {
+    font-size: 0.8rem; /* Smaller font */
+    padding: 0.4rem 0.25rem; /* Reduced padding */
+  }
+
+  .player-scores-table th:nth-child(n),
+  .player-scores-table td:nth-child(n) {
+    width: auto;
+  }
+}
+
+/* Table Header */
+.player-scores-table th {
+  background-color: var(--border-color);
+  font-weight: 600;
+  position: sticky; /* Make header sticky */
+  top: 0;
+}
+
+.player-scores-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.player-scores-table tbody tr:nth-child(even) {
+  background-color: var(--card-background);
+}
+
+.player-scores-table td:nth-child(2),
+.player-scores-table td:nth-child(3) {
+  text-align: right;
+}
+
+/* Highlight top 3 players */
+.player-scores-table tbody tr:nth-child(1) {
+  background-color: #b8ffa8; /* Light Gold */
+}
+
+.player-scores-table tbody tr:nth-child(2) {
+  background-color: #fff1bc; /* Light Silver */
+}
+
+.player-scores-table tbody tr:nth-child(3) {
+  background-color: #ffb2b2; /* Light Bronze */
+}
+
+.player-scores-table td {
+  padding: 0.75rem;
+}
+
+.overall-wins {
+  background-color: var(--card-background); /* Use defined variable */
+  padding: 1rem;
+  margin-bottom: 1.5rem; /* Space before daily stats */
+}
+
+.overall-wins h3 {
+  margin-top: 0;
+  margin-bottom: 0.75rem;
+  color: var(--primary-color);
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 0.5rem;
+}
+
+.overall-wins ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.overall-wins li {
+  padding: 0.25rem 0;
+  text-align: left; /* Ensure left alignment for list items */
+}
+
+/* Styling for optional details section */
+details {
+  margin-top: 1rem;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  padding: 0.5rem;
+}
+
+details summary {
+  cursor: pointer;
+  font-weight: 500;
+  color: var(--link-color);
+}
+
+details ul {
+  margin-top: 0.5rem;
+  padding-left: 1.5rem;
+  font-size: 0.9em;
+  color: var(--text-color);
+}
+
+/* Wrapper for horizontal scrolling on small screens */
+.table-responsive-wrapper {
+  display: block;
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+  margin-bottom: 1rem; /* Add some space below the table */
+}
+
+/* Responsive adjustments for smaller screens */
+@media (max-width: 600px) {
+  .player-scores-table th,
+  .player-scores-table td {
+    font-size: 0.6rem; /* Smaller font */
+    padding: 0.2rem 0.15rem; /* Reduced padding */
+  }
+}
