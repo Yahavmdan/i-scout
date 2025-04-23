@@ -8,12 +8,7 @@
 :root {
   --text-color: #555;
   --border-color: #e0e0e0;
-  --primary-color: #198600;
-  --danger-color: #e74c3c;
-  --danger-color-hover: #c0392b;
-  --text-color-light: #ffffff;
-  --button-disabled-background: #f5b7b1;
-  --text-color-disabled: #7f8c8d;
+  --primary-color: #2980b9;
 }
 
 .settings-container {
@@ -189,16 +184,16 @@ button.secondary:hover:not(:disabled) {
 
 /* Danger button style */
 .button-danger {
-  background-color: var(--danger-color);
-  color: var(--text-color-light);
+  background-color: #e74c3c; /* Red */
+  color: white;
 }
 
 .button-danger:hover:not(:disabled) {
-  background-color: var(--danger-color-hover);
+  background-color: #c0392b; /* Darker Red */
 }
 
 .button-danger:disabled {
-  background-color: var(--button-disabled-background); /* Use general disabled background */
+  background-color: #f5b7b1; /* Lighter Red */
   color: var(--text-color-disabled);
 }
 

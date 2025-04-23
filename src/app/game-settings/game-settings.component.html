@@ -116,5 +116,10 @@
       <button type="submit" [disabled]="settingsForm.invalid" class="submit-button">Save Settings</button>
       <button type="button" class="secondary" (click)="loadDefaultSettings()">Load Defaults</button>
     </div>
+    <!-- Local Storage Reset -->
+    <div class="form-actions reset-actions">
+      <button type="button" class="button button-danger" (click)="clearGameSettings()">Clear Saved Settings</button>
+      <button type="button" class="button button-danger" (click)="clearGameHistory()">Clear Game History</button>
+    </div>
   </form>
 </div>

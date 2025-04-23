@@ -1,9 +1,29 @@
-import {Routes} from '@angular/router';
+import { Routes } from '@angular/router';
 import { GameSettingsComponent } from './game-settings/game-settings.component';
 import { GameComponent } from './game/game.component';
+import { StatsHistoryComponent } from './stats-history/stats-history.component';
 
 export const routes: Routes = [
-  { path: '', redirectTo: '/settings', pathMatch: 'full' },
-  { path: 'settings', component: GameSettingsComponent },
-  { path: 'game', component: GameComponent }
+  {
+    path: '',
+    redirectTo: '/settings',
+    pathMatch: 'full'
+  },
+  {
+    path: 'settings',
+    component: GameSettingsComponent,
+    title: 'iScout - Game Settings'
+  },
+  {
+    path: 'game',
+    component: GameComponent,
+    title: 'iScout - Game'
+  },
+  {
+    path: 'history',
+    component: StatsHistoryComponent,
+    title: 'iScout - Stats History'
+  },
+  // Consider adding a wildcard route for 404 handling later
+  // { path: '**', component: PageNotFoundComponent }
 ];

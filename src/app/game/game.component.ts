@@ -365,13 +365,6 @@ export class GameComponent implements OnInit, OnDestroy {
   }
 
   // --- Scoring Logic / Helpers ---
-  getTeamName(teamOriginalIndex: number): string {
-    if (this.gameSettings && this.gameSettings.teams && this.gameSettings.teams[teamOriginalIndex]) {
-      return this.gameSettings.teams[teamOriginalIndex].name || `Team ${teamOriginalIndex + 1}`; // Fallback name
-    }
-    return 'Unknown Team'; // Should not happen if logic is correct
-  }
-
   // --- Helper methods for template safety ---
   getSelectedTeam(selectorIndex: 0 | 1): Team | null {
     const teamDataIndex = this.selectedTeamIndices[selectorIndex];

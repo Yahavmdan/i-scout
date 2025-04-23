@@ -101,13 +101,13 @@ fieldset {
 
 /* Specific Button Styles in Timer Controls */
 .finish-now-button {
-  background-color: var(--accent-color);
+  background-color: var(--danger-color);
   font-size: 0.9rem; /* Smaller text for this button */
   padding: 0.6rem 1rem;
 }
 
 .finish-now-button:hover:not(:disabled) {
-  background-color: #d68910; /* Darker orange */
+  background-color: var(--danger-color-hover); /* Darker orange */
 }
 
 /* Extra Time Prompt Styles */
@@ -191,7 +191,7 @@ fieldset {
   margin: 0 0.15rem; /* Tighter spacing */
   vertical-align: middle;
   background: unset;
-  color: #00c500;
+  color: var(--secondary-color); /* Use secondary for add */
   font-size: 40px;
   &:hover {
     background: unset;
@@ -199,7 +199,7 @@ fieldset {
 }
 
 .deduct-button {
-  color: red;
+  color: var(--danger-color); /* Use danger for deduct */
 }
 
 /* Player Actions Section Styles */

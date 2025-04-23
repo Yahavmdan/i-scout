@@ -87,10 +87,10 @@
            *ngIf="isTimedPlayOver && !isFinalResultDeclared && selectedTeamIndices[0] !== null && selectedTeamIndices[1] !== null">
         <h2>Declare Winner</h2>
         <p>Timed play is over. Select the final winner (e.g., after penalties):</p>
-        <button (click)="declareWinner(selectedTeamIndices[0]!)">Declare {{ getTeamName(selectedTeamIndices[0]!) }}
+        <button (click)="declareWinner(selectedTeamIndices[0]!)">Declare {{ gameSettings.teams[selectedTeamIndices[0]!].name || 'Team 1' }}
           Winner
         </button>
-        <button (click)="declareWinner(selectedTeamIndices[1]!)">Declare {{ getTeamName(selectedTeamIndices[1]!) }}
+        <button (click)="declareWinner(selectedTeamIndices[1]!)">Declare {{ gameSettings.teams[selectedTeamIndices[1]!].name || 'Team 2' }}
           Winner
         </button>
       </div>
@@ -99,7 +99,7 @@
       <div class="card game-finished-message text-center" *ngIf="isFinalResultDeclared">
         <h2>Game Finished!</h2>
         <p *ngIf="winnerTeamIndex !== null">
-          Winner: {{ getTeamName(winnerTeamIndex) }}
+          Winner: {{ gameSettings.teams[winnerTeamIndex].name || 'Team ' + (winnerTeamIndex + 1) }}
         </p>
         <button (click)="resetTimer()">Start New Game</button>
       </div>

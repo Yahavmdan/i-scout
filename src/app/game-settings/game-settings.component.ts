@@ -2,7 +2,7 @@ import {Component, OnDestroy, OnInit} from '@angular/core';
 import {AbstractControl, FormArray, FormBuilder, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms'; // Import ReactiveFormsModule
 import {Subscription} from 'rxjs';
 import {Router} from '@angular/router'; // Import Router
-import {debounceTime} from 'rxjs/operators';
+import {debounceTime, distinctUntilChanged} from 'rxjs/operators';
 import {CommonModule} from '@angular/common'; // Import CommonModule
 import {Player, PlayerPosition} from '../models/player.model';
 import {Team} from '../models/team.model';
@@ -23,6 +23,7 @@ import {GameSettings} from '../models/game-settings.model';
 export class GameSettingsComponent implements OnInit, OnDestroy {
   settingsForm!: FormGroup;
   private valueChangesSub: Subscription | undefined;
+  private defaultTeamColors = ['Red', 'Blue', 'Green', 'Yellow', 'Black', 'White', 'Orange', 'Purple', 'Pink', 'Brown'];
 
   scoringParameters: ScoringParameterDefinition[] = [
     {key: 'goals', label: 'Goal'},
@@ -57,79 +58,15 @@ export class GameSettingsComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    // Define defaults separately for clarity
-    const defaultSettings: Partial<GameSettings> = {
-      numTeams: 3,
-      numPlayersPerTeam: 4,
-      gameDuration: 7,
-      scoring: this.getDefaultScoringValues()
-    };
+    this.initForm();
+    this.loadGameSettings(); // Load saved settings or init defaults
 
-    // 1. Initialize form structure with defaults that might be overridden
-    this.settingsForm = this.fb.group({
-      numTeams: [defaultSettings.numTeams, [Validators.required, Validators.min(2), Validators.max(6)]],
-      numPlayersPerTeam: [defaultSettings.numPlayersPerTeam, [Validators.required, Validators.min(4), Validators.max(11)]],
-      gameDuration: [defaultSettings.gameDuration, [Validators.required, Validators.min(6), Validators.max(90)]],
-      scoring: this.fb.group(this.buildScoringControls()), // Build controls first
-      players: this.fb.array([]), // Explicitly type FormArray elements
-      teams: this.fb.array([]) // Add FormArray for team names
-    });
-
-    // Patch default scoring values after controls are built
-    this.settingsForm.get('scoring')?.patchValue(this.getDefaultScoringValues());
-
-    // 2. Try load saved settings
-    const savedSettings = localStorage.getItem('iScoutGameSettings');
-    if (savedSettings) {
-      try {
-        // Parse and cast to GameSettings for type safety, handle potential errors
-        const parsedSettings = JSON.parse(savedSettings) as GameSettings;
-
-        // Patch top-level controls first
-        this.settingsForm.patchValue({ // Use patchValue to avoid errors if structure mismatches
-          numTeams: parsedSettings.numTeams,
-          numPlayersPerTeam: parsedSettings.numPlayersPerTeam,
-          gameDuration: parsedSettings.gameDuration,
-          scoring: parsedSettings.scoring
-        }, {emitEvent: false}); // Prevent triggering valueChanges during patch
-
-        // Ensure team name controls match loaded counts FIRST
-        this.updateTeamNameControls(parsedSettings.numTeams);
-        // Patch team names from saved data
-        const teamNames = parsedSettings.teams.map(team => ({name: team.name}));
-        if (teamNames.length === this.teams.length) {
-          this.teams.patchValue(teamNames, {emitEvent: false});
-        }
-
-        // Ensure player controls match loaded counts
-        this.updatePlayerListAndTeams();
-
-        // Ensure teams exists before flatMapping
-        const flatPlayers: Player[] = parsedSettings.teams?.flatMap((team: Team) => team.players || []) || [];
-        this.players.patchValue(flatPlayers, {emitEvent: false}); // patchValue expects data matching the control structure
-
-      } catch (e) {
-        console.error('Error parsing saved settings:', e);
-        localStorage.removeItem('iScoutGameSettings'); // Clear invalid data
-        this.updatePlayerListAndTeams(); // Populate with defaults if load failed
-      }
-    } else {
-      // 3. Populate player list with defaults if no saved settings
-      this.updatePlayerListAndTeams(); // Populate with defaults if no saved settings
-    }
-
-    // 4. Subscribe to changes AFTER potential loading
-    // Subscribe to changes in team/player counts to update player list dynamically
-    this.valueChangesSub = this.settingsForm.get('numTeams')?.valueChanges.pipe(debounceTime(300)).subscribe(() => {
-      this.updatePlayerListAndTeams();
-    });
-    const numPlayersSub = this.settingsForm.get('numPlayersPerTeam')?.valueChanges.pipe(debounceTime(300)).subscribe(() => {
-      this.updatePlayerListAndTeams();
-    });
-    if (numPlayersSub) {
-      this.valueChangesSub?.add(numPlayersSub);
-    }
-
+    // Debounced saving of settings to local storage
+    this.valueChangesSub = this.settingsForm.valueChanges
+      .pipe(debounceTime(300))
+      .subscribe(() => {
+        this.saveSettingsToLocalStorage();
+      });
   }
 
   ngOnDestroy(): void {
@@ -217,16 +154,17 @@ export class GameSettingsComponent implements OnInit, OnDestroy {
   }
 
   private updateTeamNameControls(numTeams: number): void {
-    const currentTeams = this.teams.length;
-    if (numTeams > currentTeams) {
-      // Add new team name controls
-      for (let i = currentTeams; i < numTeams; i++) {
-        this.teams.push(this.createTeamItem(i));
+    const teamsArray = this.teams;
+    const currentLength = teamsArray.length;
+
+    if (numTeams > teamsArray.length) {
+      for (let i = teamsArray.length; i < numTeams; i++) {
+        const defaultName = this.defaultTeamColors[i % this.defaultTeamColors.length] || `Team ${i + 1}`;
+        teamsArray.push(this.fb.group({name: [defaultName, Validators.required]})); // Use color name
       }
-    } else if (numTeams < currentTeams) {
-      // Remove excess team name controls
-      for (let i = currentTeams - 1; i >= numTeams; i--) {
-        this.teams.removeAt(i);
+    } else if (numTeams < teamsArray.length) {
+      while (teamsArray.length > numTeams) {
+        teamsArray.removeAt(teamsArray.length - 1);
       }
     }
   }
@@ -241,7 +179,7 @@ export class GameSettingsComponent implements OnInit, OnDestroy {
   private createPlayerItem(teamIndex: number, playerIndexInTeam: number): FormGroup {
     // Try to get team name from the form, otherwise use default
     const teamNameControl = this.teams.at(teamIndex)?.get('name');
-    const teamName = teamNameControl?.value || `Team ${teamIndex + 1}`;
+    const teamName = teamNameControl?.value || this.defaultTeamColors[teamIndex % this.defaultTeamColors.length] || `Team ${teamIndex + 1}`;
     const playerName = `${teamName} - Player ${playerIndexInTeam + 1}`;
     return this.fb.group({
       name: [playerName, Validators.required],
@@ -274,7 +212,7 @@ export class GameSettingsComponent implements OnInit, OnDestroy {
       };
 
       for (let i = 0; i < currentSettings.numTeams; i++) {
-        const teamName = currentSettings.teams[i]?.name || `Team ${i + 1}`; // Get name from form value
+        const teamName = currentSettings.teams[i]?.name || this.defaultTeamColors[i % this.defaultTeamColors.length] || `Team ${i + 1}`; // Get name from form value
         const teamPlayers = currentSettings.players.slice(i * currentSettings.numPlayersPerTeam, (i + 1) * currentSettings.numPlayersPerTeam);
         settingsToSave.teams.push({name: teamName, players: teamPlayers}); // Include name
       }
@@ -305,17 +243,17 @@ export class GameSettingsComponent implements OnInit, OnDestroy {
     this.teams.clear();
     this.players.clear();
 
-    // 3. Patch the form with default values
+    // 3. Patch the main form values (excluding arrays)
     this.settingsForm.patchValue({
+      gameDuration: defaultSettings.gameDuration,
       numTeams: defaultSettings.numTeams,
       numPlayersPerTeam: defaultSettings.numPlayersPerTeam,
-      gameDuration: defaultSettings.gameDuration,
       scoring: defaultScoring,
       // Team and Player arrays are cleared, will be rebuilt by updatePlayerListAndTeams
-    }, {emitEvent: false}); // Avoid triggering value changes during patch
+    }, { emitEvent: false }); // Avoid triggering value changes during patch
 
-    // 4. Trigger the update to rebuild team/player controls based on defaults
-    //    Need to temporarily re-enable events if disabled globally
+    // 4. Explicitly update team/player arrays based on the new counts
+    this.updateTeamNameControls(defaultSettings.numTeams);
     this.updatePlayerListAndTeams();
 
     // 5. Optional: Mark form as pristine and untouched
@@ -324,4 +262,132 @@ export class GameSettingsComponent implements OnInit, OnDestroy {
   }
 
   // --- Helper Methods for Dynamic Form Arrays ---
+
+  /**
+   * Clears the saved game settings from local storage.
+   */
+  clearGameSettings(): void {
+    localStorage.removeItem('iScoutGameSettings');
+    // Optionally, provide user feedback (e.g., using a snackbar or alert)
+    console.log('Saved game settings cleared.');
+    // Maybe reset the form to defaults after clearing?
+    // this.loadDefaultSettings();
+  }
+
+  /**
+   * Clears the game history from local storage.
+   */
+  clearGameHistory(): void {
+    localStorage.removeItem('gameHistory');
+    // Optionally, provide user feedback
+    console.log('Game history cleared.');
+  }
+
+  private initForm(): void {
+    this.settingsForm = this.fb.group({
+      numTeams: [2, [Validators.required, Validators.min(2), Validators.max(6)]],
+      numPlayersPerTeam: [11, [Validators.required, Validators.min(1), Validators.max(11)]],
+      gameDuration: [7, [Validators.required, Validators.min(1), Validators.max(90)]],
+      scoring: this.fb.group(this.buildScoringControls()), // Build controls first
+      teams: this.fb.array([]), // Initialize empty
+      players: this.fb.array([]), // Initialize empty
+    });
+
+    // Patch default scoring values after controls are built
+    this.settingsForm.get('scoring')?.patchValue(this.getDefaultScoringValues());
+
+    // Populate initial teams/players based on default counts
+    const initialNumTeams = this.settingsForm.get('numTeams')?.value || 2;
+    const initialNumPlayers = this.settingsForm.get('numPlayersPerTeam')?.value || 11;
+    this.updateTeamNameControls(initialNumTeams);
+    this.updatePlayerListAndTeams();
+  }
+
+  private loadGameSettings(): void {
+    // Try load saved settings
+    const savedSettings = localStorage.getItem('iScoutGameSettings');
+    if (savedSettings) {
+      try {
+        // Parse and cast to GameSettings for type safety, handle potential errors
+        const parsedSettings = JSON.parse(savedSettings) as GameSettings;
+
+        // Patch top-level controls first
+        this.settingsForm.patchValue({
+          numTeams: parsedSettings.numTeams,
+          numPlayersPerTeam: parsedSettings.numPlayersPerTeam,
+          gameDuration: parsedSettings.gameDuration,
+          scoring: parsedSettings.scoring
+        }, {emitEvent: false}); // Prevent triggering valueChanges during patch
+
+        // Ensure team name controls match loaded counts FIRST
+        this.updateTeamNameControls(parsedSettings.numTeams);
+        // Patch team names from saved data
+        const teamNames = parsedSettings.teams.map((team, index) => {
+          const defaultName = this.defaultTeamColors[index % this.defaultTeamColors.length] || `Team ${index + 1}`;
+          return {name: team.name || defaultName}; // Use default if saved name is missing
+        });
+        if (teamNames.length === this.teams.length) {
+          this.teams.patchValue(teamNames, {emitEvent: false});
+        }
+
+        // Ensure player controls match loaded counts
+        this.updatePlayerListAndTeams();
+
+        // Ensure teams exists before flatMapping
+        const flatPlayers: Player[] = parsedSettings.teams?.flatMap((team: Team) => team.players || []) || [];
+        this.players.patchValue(flatPlayers, {emitEvent: false}); // patchValue expects data matching the control structure
+
+      } catch (e) {
+        console.error('Error parsing saved settings:', e);
+        localStorage.removeItem('iScoutGameSettings'); // Clear invalid data
+        this.updatePlayerListAndTeams(); // Populate with defaults if load failed
+      }
+    } else {
+      // 3. Populate player list with defaults if no saved settings
+      this.updatePlayerListAndTeams(); // Populate with defaults if no saved settings
+    }
+  }
+
+  private saveSettingsToLocalStorage(): void {
+    // Explicitly type the raw form value (adjust based on actual structure)
+    const currentSettings: {
+      numTeams: number,
+      numPlayersPerTeam: number,
+      gameDuration: number,
+      players: Player[],
+      scoring: ScoringParameters,
+      teams: { name: string }[]
+    } = this.settingsForm.getRawValue();
+
+    // Use default color name if field is empty or just whitespace
+    for (let i = 0; i < currentSettings.numTeams; i++) {
+      const teamControl = this.teams.at(i).get('name');
+      const defaultName = this.defaultTeamColors[i % this.defaultTeamColors.length] || `Team ${i + 1}`;
+      const teamName = teamControl?.value?.trim() || defaultName;
+      // Optionally patch the form value back if it was using the default
+      if (!teamControl?.value?.trim()) {
+        teamControl?.patchValue(defaultName, {emitEvent: false});
+      }
+      const teamPlayers = this.players.getRawValue().slice(i * currentSettings.numPlayersPerTeam, (i + 1) * currentSettings.numPlayersPerTeam);
+      currentSettings.teams[i].name = teamName;
+    }
+
+    // Build settingsToSave explicitly matching GameSettings interface
+    const settingsToSave: GameSettings = {
+      numTeams: currentSettings.numTeams,
+      numPlayersPerTeam: currentSettings.numPlayersPerTeam,
+      gameDuration: currentSettings.gameDuration,
+      scoring: currentSettings.scoring,
+      teams: [] // This will be populated below
+    };
+
+    for (let i = 0; i < currentSettings.numTeams; i++) {
+      const teamName = currentSettings.teams[i].name;
+      const teamPlayers = currentSettings.players.slice(i * currentSettings.numPlayersPerTeam, (i + 1) * currentSettings.numPlayersPerTeam);
+      settingsToSave.teams.push({name: teamName, players: teamPlayers}); // Include name
+    }
+
+    localStorage.setItem('iScoutGameSettings', JSON.stringify(settingsToSave));
+    console.log('Settings saved to local storage with teams structure.');
+  }
 }
