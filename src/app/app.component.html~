@@ -1,5 +1,5 @@
 <header class="app-header">
-  <h1>iScout <span class="beta">beta</span></h1>
+  <h1>iScout<span>beta</span></h1>
   <nav>
     <!-- Hamburger Button (Mobile Only) -->
     <button class="hamburger" (click)="toggleMenu()" aria-label="Toggle menu">

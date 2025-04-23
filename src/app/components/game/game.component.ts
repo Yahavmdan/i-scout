@@ -1,11 +1,11 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { GameSettings } from '../models/game-settings.model';
-import { FormatTimePipe } from '../shared/pipes/format-time.pipe';
-import { FormatActionNamePipe } from '../shared/pipes/format-action-name.pipe';
-import { Player } from '../models/player.model';
-import { Team } from '../models/team.model';
-import { GameRecord } from '../models/game-record.model';
+import { GameSettings } from '../../models/game-settings.model';
+import { FormatTimePipe } from '../../shared/pipes/format-time.pipe';
+import { FormatActionNamePipe } from '../../shared/pipes/format-action-name.pipe';
+import { Player } from '../../models/player.model';
+import { Team } from '../../models/team.model';
+import { GameRecord } from '../../models/game-record.model';
 
 @Component({
   selector: 'app-game',

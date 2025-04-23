@@ -265,24 +265,49 @@ fieldset {
  background-color: #e0e0e0; /* Slightly darker background */
 }
 
-.scoring-buttons {
-  text-align: center;
-  margin-top: 1rem;
-}
-
-.scoring-buttons h5 {
-  margin-bottom: 0.75rem;
-  font-size: 1.2rem;
-  color: var(--primary-color);
-}
-
-.scoring-buttons button {
+.scoring-actions button {
   margin: 0.25rem;
-  background-color: var(--secondary-color); /* Green */
+  padding: 0.5rem 0.8rem;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
 }
 
-.scoring-buttons button:hover:not(:disabled) {
-  background-color: #27ae60; /* Darker Green */
+.scoring-actions button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* Action Button Colors based on points */
+.scoring-actions .positive-score {
+  background-color: var(--primary-color); /* Blue */
+  color: white;
+  border-color: var(--primary-color);
+}
+
+.scoring-actions .positive-score:hover:not(:disabled) {
+  background-color: var(--primary-color-hover); /* Darker Blue */
+}
+
+.scoring-actions .negative-score {
+  background-color: var(--danger-color); /* Red */
+  color: white;
+  border-color: var(--danger-color);
+}
+
+.scoring-actions .negative-score:hover:not(:disabled) {
+  background-color: var(--danger-color-hover); /* Darker Red */
+}
+
+.scoring-actions .middle-score {
+  background-color: #bdc3c7; /* Grey */
+  color: #34495e; /* Darker grey text */
+  border-color: #bdc3c7;
+}
+
+.scoring-actions .middle-score:hover:not(:disabled) {
+  background-color: #95a5a6; /* Darker Grey */
 }
 
 /* Winner Declaration Section Styles */

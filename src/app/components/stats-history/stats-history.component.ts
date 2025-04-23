@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { GameRecord } from '../models/game-record.model';
-import { Player } from '../models/player.model';
+import { GameRecord } from '../../models/game-record.model';
+import { Player } from '../../models/player.model';
 
 interface DailyStats {
   date: string; // Formatted date string (e.g., 'YYYY-MM-DD')

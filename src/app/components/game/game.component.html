@@ -123,7 +123,7 @@
                   (click)="incrementScore(0)"
                   [disabled]="selectedTeamIndices[0] === -1 || isFinalResultDeclared"
                   title="Add Goal (Team 1)">
-                  +
+                  ↑
                 </button>
                 <span class="score">{{ teamScores[0] }}</span>
                 <button
@@ -131,7 +131,7 @@
                   (click)="decrementScore(0)"
                   [disabled]="selectedTeamIndices[0] === -1 || teamScores[0] <= 0 || isFinalResultDeclared"
                   title="Deduct Goal (Team 1)">
-                  -
+                  ↓
                 </button>
               </div>
             </div>
@@ -149,7 +149,7 @@
                   (click)="incrementScore(1)"
                   [disabled]="selectedTeamIndices[1] === -1 || isFinalResultDeclared"
                   title="Add Goal (Team 2)">
-                  +
+                  ↑
                 </button>
                 <span class="score">{{ teamScores[1] }}</span>
                 <button
@@ -157,7 +157,7 @@
                   (click)="decrementScore(1)"
                   [disabled]="selectedTeamIndices[1] === -1 || teamScores[1] <= 0 || isFinalResultDeclared"
                   title="Deduct Goal (Team 2)">
-                  -
+                  ↓
                 </button>
               </div>
             </div>

@@ -1,7 +1,7 @@
 import { Routes } from '@angular/router';
-import { GameSettingsComponent } from './game-settings/game-settings.component';
-import { GameComponent } from './game/game.component';
-import { StatsHistoryComponent } from './stats-history/stats-history.component';
+import { GameSettingsComponent } from './components/game-settings/game-settings.component';
+import { GameComponent } from './components/game/game.component';
+import { StatsHistoryComponent } from './components/stats-history/stats-history.component';
 
 export const routes: Routes = [
   {

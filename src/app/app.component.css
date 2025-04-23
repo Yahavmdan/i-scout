@@ -38,3 +38,84 @@ nav ul li a:hover,
 nav ul li a.active-link { /* Style for active link */
   color: var(--link-hover-color-dark);
 }
+
+/* Hamburger Button - Hidden by default on larger screens */
+.hamburger {
+  display: none;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  flex-direction: column;
+  justify-content: space-around;
+  width: 1.5rem; /* Smaller width */
+  height: 1.5rem; /* Smaller height */
+}
+
+.hamburger span {
+  display: block;
+  width: 1.5rem; /* Match button width */
+  height: 2px;  /* Thinner lines */
+  background-color: var(--header-text);
+  border-radius: 2px;
+  transition: transform 0.3s ease, opacity 0.3s ease; /* Add transition for potential animation */
+}
+
+/* --- Responsive Styles for Header --- */
+@media (max-width: 768px) {
+  .app-header {
+    padding: 0.75rem 1rem; /* Reduce padding on mobile */
+  }
+
+  .hamburger {
+    display: flex; /* Show hamburger on mobile */
+  }
+
+  .nav-links {
+    position: absolute;
+    top: 60px; /* Adjust based on header height */
+    right: 0;
+    width: 100%;
+    background-color: var(--header-background);
+    box-shadow: 0 4px 6px var(--shadow-color);
+    z-index: 1000;
+    /* Animation setup */
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
+    visibility: hidden;
+    transition: max-height 0.4s ease-out, opacity 0.3s ease-out, visibility 0.3s ease-out;
+  }
+
+  .nav-links.open {
+    /* Animation target state */
+    max-height: 500px; /* Allow space for content */
+    opacity: 1;
+    visibility: visible;
+    transition: max-height 0.5s ease-in, opacity 0.4s ease-in, visibility 0.4s ease-in;
+  }
+
+  nav ul {
+    flex-direction: column; /* Stack links vertically */
+    width: 100%;
+  }
+
+  nav ul li {
+    margin: 0;
+    text-align: center;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1); /* Separator */
+  }
+
+  nav ul li:last-child {
+    border-bottom: none;
+  }
+
+  nav ul li a {
+    display: block;
+    padding: 1rem;
+  }
+}
+
+.beta {
+  font-size: 12px;
+}
