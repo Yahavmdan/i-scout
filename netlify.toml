@@ -1,6 +1,6 @@
 [build]
 command = "npm config set _auth '' && npm config set always-auth false && npm config set registry https://registry.npmjs.org/ && npm config set auth-type legacy && npm install --no-fund --no-audit --legacy-peer-deps && npm run build"
-publish = "dist/i-scout"
+publish = "dist/i-scout/browser"
 
 [build.environment]
 NODE_VERSION = "22.0.0"
