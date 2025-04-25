@@ -1,5 +1,5 @@
 import {Component, OnDestroy, OnInit} from '@angular/core';
-import {AbstractControl, FormArray, FormBuilder, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms'; // Import ReactiveFormsModule
+import {AbstractControl, FormArray, FormBuilder, FormGroup, FormControl, ReactiveFormsModule, Validators} from '@angular/forms'; // Import ReactiveFormsModule
 import {Subscription} from 'rxjs';
 import {Router} from '@angular/router'; // Import Router
 import {debounceTime, distinctUntilChanged} from 'rxjs/operators';
@@ -30,7 +30,7 @@ export class GameSettingsComponent implements OnInit, OnDestroy {
   // Confirmation state
   confirmingDeleteSettings = false;
   confirmingDeleteHistory = false;
-  deleteConfirmationInput = '';
+  deleteConfirmationControl = new FormControl(''); // New control for confirmation input
   readonly CONFIRMATION_PHRASE = 'delete this';
 
   scoringParameters: ScoringParameterDefinition[] = [
@@ -206,7 +206,8 @@ export class GameSettingsComponent implements OnInit, OnDestroy {
         gameDuration: number,
         players: Player[],
         scoring: ScoringParameters,
-        teams: { name: string }[]
+        teams: { name: string }[],
+        allowExtraTime: boolean // Add this property
       } = this.settingsForm.getRawValue();
       console.log('Form Submitted (Raw):', currentSettings);
 
@@ -216,7 +217,8 @@ export class GameSettingsComponent implements OnInit, OnDestroy {
         numPlayersPerTeam: currentSettings.numPlayersPerTeam,
         gameDuration: currentSettings.gameDuration,
         scoring: currentSettings.scoring,
-        teams: [] // This will be populated below
+        teams: [],
+        allowExtraTime: currentSettings.allowExtraTime // Get value from form
       };
 
       for (let i = 0; i < currentSettings.numTeams; i++) {
@@ -243,6 +245,7 @@ export class GameSettingsComponent implements OnInit, OnDestroy {
       numTeams: 3,
       numPlayersPerTeam: 4,
       gameDuration:7,
+      allowExtraTime: false // Default to false
     };
     const defaultScoring = this.getDefaultScoringValues();
 
@@ -257,6 +260,7 @@ export class GameSettingsComponent implements OnInit, OnDestroy {
       numTeams: defaultSettings.numTeams,
       numPlayersPerTeam: defaultSettings.numPlayersPerTeam,
       scoring: defaultScoring,
+      allowExtraTime: defaultSettings.allowExtraTime, // Patch allowExtraTime
       // Team and Player arrays are cleared, will be rebuilt by updatePlayerListAndTeams
     }, { emitEvent: false }); // Avoid triggering valueChanges during patch
 
@@ -288,7 +292,13 @@ export class GameSettingsComponent implements OnInit, OnDestroy {
   }
 
   confirmDelete(type: 'settings' | 'history'): void {
-    if (this.deleteConfirmationInput.toLowerCase() === this.CONFIRMATION_PHRASE) {
+    console.log(`Confirming delete for: ${type}`);
+    const inputValue = this.deleteConfirmationControl.value || ''; // Get value from FormControl
+    console.log(`Input value: '${inputValue}'`);
+    console.log(`Lowercase input: '${inputValue.toLowerCase()}'`);
+    console.log(`Expected phrase: '${this.CONFIRMATION_PHRASE}'`);
+    console.log(`Comparison result: ${inputValue.toLowerCase() === this.CONFIRMATION_PHRASE}`);
+    if (inputValue.toLowerCase() === this.CONFIRMATION_PHRASE) {
       if (type === 'settings') {
         this.performClearSettings();
       } else if (type === 'history') {
@@ -298,14 +308,14 @@ export class GameSettingsComponent implements OnInit, OnDestroy {
     } else {
       // Optional: Add feedback if the input is wrong
       alert('Confirmation text does not match. Please type "delete this".');
-      this.deleteConfirmationInput = ''; // Clear input on mismatch
+      this.deleteConfirmationControl.setValue(''); // Reset the FormControl
     }
   }
 
   cancelDelete(): void {
     this.confirmingDeleteSettings = false;
     this.confirmingDeleteHistory = false;
-    this.deleteConfirmationInput = '';
+    this.deleteConfirmationControl.setValue(''); // Reset the FormControl
   }
 
   // --- Actual Local Storage Clearing ---
@@ -346,14 +356,16 @@ export class GameSettingsComponent implements OnInit, OnDestroy {
     const defaultPlayersPerTeam = 4; // Updated to match loadDefaultSettings
     const defaultGameDuration = 7; // Updated to match loadDefaultSettings
     const defaultScoring = this.getDefaultScoringValues();
+    const defaultAllowExtraTime = false; // Default to false
 
     this.settingsForm = this.fb.group({
       numTeams: [defaultNumTeams, [Validators.required, Validators.min(1), Validators.max(10)]],
       numPlayersPerTeam: [defaultPlayersPerTeam, [Validators.required, Validators.min(1), Validators.max(11)]],
-      gameDuration: [defaultGameDuration, [Validators.required, Validators.min(5), Validators.max(180)]],
+      gameDuration: [defaultGameDuration, [Validators.required, Validators.min(1), Validators.max(180)]],
       scoring: this.fb.group(this.buildScoringControls()), // Structure built, values patched below
       teams: this.fb.array([]), // Initially empty, populated by updateTeamNameControls
       players: this.fb.array([]), // Initially empty, populated by updatePlayerListAndTeams
+      allowExtraTime: [defaultAllowExtraTime] // Add allowExtraTime FormControl
     });
 
     // Patch the scoring controls with default values
@@ -379,7 +391,8 @@ export class GameSettingsComponent implements OnInit, OnDestroy {
           numTeams: parsedSettings.numTeams,
           numPlayersPerTeam: parsedSettings.numPlayersPerTeam,
           gameDuration: parsedSettings.gameDuration,
-          scoring: parsedSettings.scoring
+          scoring: parsedSettings.scoring,
+          allowExtraTime: parsedSettings.allowExtraTime // Patch allowExtraTime
         }, {emitEvent: false}); // Prevent triggering valueChanges during patch
 
         // Ensure team name controls match loaded counts FIRST
@@ -419,7 +432,8 @@ export class GameSettingsComponent implements OnInit, OnDestroy {
       gameDuration: number,
       players: Player[],
       scoring: ScoringParameters,
-      teams: { name: string }[]
+      teams: { name: string }[],
+      allowExtraTime: boolean // Add this property
     } = this.settingsForm.getRawValue();
 
     // Use default color name if field is empty or just whitespace
@@ -441,6 +455,7 @@ export class GameSettingsComponent implements OnInit, OnDestroy {
       numPlayersPerTeam: currentSettings.numPlayersPerTeam,
       gameDuration: currentSettings.gameDuration,
       scoring: currentSettings.scoring,
+      allowExtraTime: currentSettings.allowExtraTime,
       teams: [] // This will be populated below
     };
 
@@ -449,6 +464,8 @@ export class GameSettingsComponent implements OnInit, OnDestroy {
       const teamPlayers = currentSettings.players.slice(i * currentSettings.numPlayersPerTeam, (i + 1) * currentSettings.numPlayersPerTeam);
       settingsToSave.teams.push({name: teamName, players: teamPlayers}); // Include name
     }
+
+    settingsToSave.allowExtraTime = currentSettings.allowExtraTime; // Get value from form
 
     localStorage.setItem('iScoutGameSettings', JSON.stringify(settingsToSave));
     console.log('Settings saved to local storage with teams structure.');

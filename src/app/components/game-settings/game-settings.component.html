@@ -40,112 +40,123 @@
             <small *ngIf="settingsForm.get('gameDuration')?.errors?.['max']">Cannot exceed 90 minutes.</small>
           </div>
         </div>
-      </div>
 
-      <!-- Team Names -->
-      <div formArrayName="teams" class="team-names-section">
-        <h2>Team Names</h2>
-        <div *ngFor="let teamControl of teams.controls; let i = index" [formGroupName]="i" class="team-name-item">
-          <div class="form-field">
-            <label [for]="'teamName' + i">Team {{ i + 1 }} Name:</label>
-            <input [id]="'teamName' + i" type="text" formControlName="name">
-            <div *ngIf="teamControl.get('name')?.invalid && teamControl.get('name')?.touched" class="validation-error">
-              <small *ngIf="teamControl.get('name')?.errors?.['required']">Team name is required.</small>
+        <!-- Allow Extra Time Checkbox -->
+        <div class="form-field">
+          <div class="form-check">
+            <input type="checkbox" id="allowExtraTime" formControlName="allowExtraTime">
+            <label class="form-check-label" for="allowExtraTime">Allow Extra Time (if game is tied at the end)</label>
+          </div>
+        </div>
+
+        <!-- Team Names -->
+        <div formArrayName="teams" class="team-names-section">
+          <h2>Team Names</h2>
+          <div *ngFor="let teamControl of teams.controls; let i = index" [formGroupName]="i" class="team-name-item">
+            <div class="form-field">
+              <label [for]="'teamName' + i">Team {{ i + 1 }} Name:</label>
+              <input [id]="'teamName' + i" type="text" formControlName="name">
+              <div *ngIf="teamControl.get('name')?.invalid && teamControl.get('name')?.touched"
+                   class="validation-error">
+                <small *ngIf="teamControl.get('name')?.errors?.['required']">Team name is required.</small>
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
-      <!-- Player List -->
-      <div class="form-section players-section">
-        <h2>Players</h2>
-        <div formArrayName="players" class="player-list">
-          <!-- Display Goalkeeper Validation Error -->
-          <div *ngIf="players.invalid && players.dirty && players.errors?.['incorrectGoalkeeperCountPerTeam']"
-               class="validation-error form-error">
-            Incorrect number of goalkeepers for
-            Team {{ players.errors?.['incorrectGoalkeeperCountPerTeam']?.teamIndex }}.
-            Found {{ players.errors?.['incorrectGoalkeeperCountPerTeam']?.count }}, expected 1.
-            Please ensure each team has exactly one goalkeeper.
-          </div>
+        <!-- Player List -->
+        <div class="form-section players-section">
+          <h2>Players</h2>
+          <div formArrayName="players" class="player-list">
+            <!-- Display Goalkeeper Validation Error -->
+            <div *ngIf="players.invalid && players.dirty && players.errors?.['incorrectGoalkeeperCountPerTeam']"
+                 class="validation-error form-error">
+              Incorrect number of goalkeepers for
+              Team {{ players.errors?.['incorrectGoalkeeperCountPerTeam']?.teamIndex }}.
+              Found {{ players.errors?.['incorrectGoalkeeperCountPerTeam']?.count }}, expected 1.
+              Please ensure each team has exactly one goalkeeper.
+            </div>
 
-          <!-- Loop through Teams -->
-          <div *ngFor="let teamIndex of [].constructor(numTeams); let t = index" class="team-player-group">
-            <!-- Display team name dynamically -->
-            <h3>{{ teams.at(t).get('name')?.value || ('Team ' + (t + 1)) }} Players</h3>
-            <!-- Loop through Players within the Team -->
-            <div *ngFor="let playerIndex of [].constructor(numPlayersPerTeam); let p = index">
-              <!-- Calculate the actual index in the flat players FormArray -->
-              <ng-container *ngIf="players.controls[t * numPlayersPerTeam + p] as playerGroup"
-                            [formGroupName]="t * numPlayersPerTeam + p">
-                <div class="player-item">
-                  <h4>{{ teams.at(t).get('name')?.value || 'Team ' + (t + 1) }} - Player {{ p + 1 }}</h4>
-                  <div class="form-field">
-                    <label [for]="'playerName' + (t * numPlayersPerTeam + p)">Name:</label>
-                    <input [id]="'playerName' + (t * numPlayersPerTeam + p)" type="text" formControlName="name">
-                    <div *ngIf="playerGroup.get('name')?.invalid && playerGroup.get('name')?.touched"
-                         class="validation-error">
-                      <small *ngIf="playerGroup.get('name')?.errors?.['required']">Player name is required.</small>
+            <!-- Loop through Teams -->
+            <div *ngFor="let teamIndex of [].constructor(numTeams); let t = index" class="team-player-group">
+              <!-- Display team name dynamically -->
+              <h3>{{ teams.at(t).get('name')?.value || ('Team ' + (t + 1)) }} Players</h3>
+              <!-- Loop through Players within the Team -->
+              <div *ngFor="let playerIndex of [].constructor(numPlayersPerTeam); let p = index">
+                <!-- Calculate the actual index in the flat players FormArray -->
+                <ng-container *ngIf="players.controls[t * numPlayersPerTeam + p] as playerGroup"
+                              [formGroupName]="t * numPlayersPerTeam + p">
+                  <div class="player-item">
+                    <h4>{{ teams.at(t).get('name')?.value || 'Team ' + (t + 1) }} - Player {{ p + 1 }}</h4>
+                    <div class="form-field">
+                      <label [for]="'playerName' + (t * numPlayersPerTeam + p)">Name:</label>
+                      <input [id]="'playerName' + (t * numPlayersPerTeam + p)" type="text" formControlName="name">
+                      <div *ngIf="playerGroup.get('name')?.invalid && playerGroup.get('name')?.touched"
+                           class="validation-error">
+                        <small *ngIf="playerGroup.get('name')?.errors?.['required']">Player name is required.</small>
+                      </div>
+                    </div>
+                    <div class="form-field player-position-display">
+                      <label>Position:</label>
+                      <span>{{ p === 0 ? 'Goalkeeper' : 'Field Player' }}</span>
                     </div>
                   </div>
-                  <div class="form-field player-position-display">
-                    <label>Position:</label>
-                    <span>{{ p === 0 ? 'Goalkeeper' : 'Field Player' }}</span>
-                  </div>
-                </div>
-              </ng-container>
+                </ng-container>
+              </div>
             </div>
           </div>
         </div>
-      </div>
-      <!-- Scoring Parameters -->
-      <div class="form-section">
-        <h3>Scoring Points (-3 to +3)</h3>
-        <div formGroupName="scoring" class="scoring-grid">
-          <div *ngFor="let param of scoringParameters" class="form-field scoring-item">
-            <label [for]="'scoring_' + param.key">{{ param.label }}:</label>
-            <input [id]="'scoring_' + param.key" type="number" [formControlName]="param.key" min="-3" max="3">
-            <div
-              *ngIf="settingsForm.get('scoring.' + param.key)?.invalid && settingsForm.get('scoring.' + param.key)?.touched"
-              class="validation-error">
-              <small>Score must be between -3 and 3.</small>
+        <!-- Scoring Parameters -->
+        <div class="form-section">
+          <h3>Scoring Points (-3 to +3)</h3>
+          <div formGroupName="scoring" class="scoring-grid">
+            <div *ngFor="let param of scoringParameters" class="form-field scoring-item">
+              <label [for]="'scoring_' + param.key">{{ param.label }}:</label>
+              <input [id]="'scoring_' + param.key" type="number" [formControlName]="param.key" min="-3" max="3">
+              <div
+                *ngIf="settingsForm.get('scoring.' + param.key)?.invalid && settingsForm.get('scoring.' + param.key)?.touched"
+                class="validation-error">
+                <small>Score must be between -3 and 3.</small>
+              </div>
             </div>
           </div>
         </div>
+        <button type="submit" [disabled]="settingsForm.invalid" class="submit-button">Save Settings</button>
+        <button type="button" class="secondary" (click)="loadDefaultSettings()">Load Defaults</button>
       </div>
-      <button type="submit" [disabled]="settingsForm.invalid" class="submit-button">Save Settings</button>
-      <button type="button" class="secondary" (click)="loadDefaultSettings()">Load Defaults</button>
-    </div>
-    <!-- Local Storage Reset -->
-    <div class="form-actions reset-actions">
-      <!-- Settings Deletion -->
-      <div *ngIf="!confirmingDeleteSettings">
-        <button type="button" class="button button-danger" (click)="requestClearSettings()">
-          🗑️ Clear Saved Settings
-        </button>
-      </div>
-      <div *ngIf="confirmingDeleteSettings" class="confirmation-box">
-        <label for="confirmSettingsDelete">Type "{{CONFIRMATION_PHRASE}}" to confirm:</label>
-        <input id="confirmSettingsDelete" type="text" [(ngModel)]="deleteConfirmationInput" name="confirmSettingsInput" autocomplete="off">
-        <button type="button" class="button button-danger" (click)="confirmDelete('settings')">
-          🗑️ Confirm Delete Settings
-        </button>
-        <button type="button" class="button button-secondary" (click)="cancelDelete()">Cancel</button>
-      </div>
+      <!-- Local Storage Reset -->
+      <div class="form-actions reset-actions">
+        <!-- Settings Deletion -->
+        <div *ngIf="!confirmingDeleteSettings">
+          <button type="button" class="button button-danger" (click)="requestClearSettings()">
+            🗑️ Clear Saved Settings
+          </button>
+        </div>
+        <div *ngIf="confirmingDeleteSettings" class="confirmation-box">
+          <label for="confirmSettingsDelete">Type "{{ CONFIRMATION_PHRASE }}" to confirm:</label>
+          <input id="confirmSettingsDelete" type="text" [formControl]="deleteConfirmationControl"
+                 autocomplete="off">
+          <button type="button" class="button button-danger" (click)="confirmDelete('settings')">
+            🗑️ Confirm Delete Settings
+          </button>
+          <button type="button" class="button button-secondary" (click)="cancelDelete()">Cancel</button>
+        </div>
 
-      <!-- History Deletion -->
-      <div *ngIf="!confirmingDeleteHistory">
-        <button type="button" class="button button-danger" (click)="requestClearHistory()">
-          🗑️ Clear Game History
-        </button>
-      </div>
-      <div *ngIf="confirmingDeleteHistory" class="confirmation-box">
-        <label for="confirmHistoryDelete">Type "{{CONFIRMATION_PHRASE}}" to confirm:</label>
-        <input id="confirmHistoryDelete" type="text" [(ngModel)]="deleteConfirmationInput" name="confirmHistoryInput" autocomplete="off">
-        <button type="button" class="button button-danger" (click)="confirmDelete('history')">
-          🗑️ Confirm Delete History
-        </button>
-        <button type="button" class="button button-secondary" (click)="cancelDelete()">Cancel</button>
+        <!-- History Deletion -->
+        <div *ngIf="!confirmingDeleteHistory">
+          <button type="button" class="button button-danger" (click)="requestClearHistory()">
+            🗑️ Clear Game History
+          </button>
+        </div>
+        <div *ngIf="confirmingDeleteHistory" class="confirmation-box">
+          <label for="confirmHistoryDelete">Type "{{ CONFIRMATION_PHRASE }}" to confirm:</label>
+          <input id="confirmHistoryDelete" type="text" [formControl]="deleteConfirmationControl"
+                 autocomplete="off">
+          <button type="button" class="button button-danger" (click)="confirmDelete('history')">
+            🗑️ Confirm Delete History
+          </button>
+          <button type="button" class="button button-secondary" (click)="cancelDelete()">Cancel</button>
+        </div>
       </div>
     </div>
   </form>

@@ -119,18 +119,14 @@ export class GameComponent implements OnInit, OnDestroy {
   handleTimerEnd(): void {
     this.stopTimer(); // Stop the interval first
 
-    if (!this.isExtraTimeActive && !this.extraTimeRequested && !this.isTimedPlayOver) {
-      // Main time finished, request extra time
-      this.extraTimeRequested = true;
-      console.log('Main time finished. Requesting extra time.');
-    } else if (this.isExtraTimeActive) {
-      // Extra time finished
-      this.isExtraTimeActive = false; // No longer in extra time mode
-      this.isTimedPlayOver = true; // Timed play is over
-      console.log('Extra time finished. Timed play over.');
+    if (this.isExtraTimeActive) {
+      this.isExtraTimeActive = false;
+      this._determineWinnerAfterExtraTime();
+    } else {
+      // If regular time ended (or extra time wasn't active/allowed)
+      // Determine winner automatically (which might start extra time)
+      this._determineAndDeclareWinnerAutomatically();
     }
-    // If extraTimeRequested is true, do nothing - wait for user input
-    // If isTimedPlayOver is true, do nothing
   }
 
   pauseTimer(): void {
@@ -179,6 +175,7 @@ export class GameComponent implements OnInit, OnDestroy {
     console.log('Adding extra time');
     this.timerValue = this.EXTRA_TIME_DURATION;
     this.isExtraTimeActive = true;
+    this.isTimedPlayOver = false; // Ensure timed play isn't marked over yet
     this.extraTimeRequested = false; // Hide the prompt
     this.startTimer(); // Start the timer with the extra time
   }
@@ -186,7 +183,8 @@ export class GameComponent implements OnInit, OnDestroy {
   endGameWithoutExtraTime(): void {
     console.log('Ending game without extra time.');
     this.extraTimeRequested = false; // Hide prompt
-    this.isTimedPlayOver = true; // Timed play is over
+    this.isTimedPlayOver = true; // Mark timed play over
+    this._determineAndDeclareWinnerAutomatically(); // Declare winner based on current scores
   }
 
   stopTimer(): void {
@@ -309,7 +307,7 @@ export class GameComponent implements OnInit, OnDestroy {
   }
 
   // --- Winner Declaration and Saving ---
-  declareWinner(winningTeamOriginalIndex: number): void {
+  declareWinner(winningTeamOriginalIndex: number | null): void {
     if (!this.isTimedPlayOver || this.isFinalResultDeclared) {
       console.warn('Cannot declare winner at this stage.');
       return;
@@ -352,6 +350,61 @@ export class GameComponent implements OnInit, OnDestroy {
 
     console.log('Game data saved to local storage:', finalRecord);
     console.log('Total games in history:', history.length);
+  }
+
+  // NEW: Automatically determine winner or prompt for extra time
+  private _determineAndDeclareWinnerAutomatically(): void {
+    const score1 = this.teamScores[0];
+    const score2 = this.teamScores[1];
+    const team1Index = this.selectedTeamIndices[0];
+    const team2Index = this.selectedTeamIndices[1];
+
+    if (score1 === score2 && this.gameSettings?.allowExtraTime) {
+      // Draw and extra time is allowed - START extra time automatically
+      console.log('Regular time finished with a draw. Starting extra time automatically.');
+      this.addExtraTime();
+    } else if (score1 === score2) {
+      // Draw and extra time is NOT allowed - prompt user for manual declaration
+      console.log('Regular time finished with a draw (no extra time). Manual winner declaration required.');
+      this.isTimedPlayOver = true; // Mark timed play over
+      // DO NOT declare winner automatically - let the user decide via UI
+    } else if (score1 > score2) {
+      // Team 1 wins
+      console.log(`Regular time finished. Team 1 (${team1Index}) wins automatically.`);
+      this.isTimedPlayOver = true; // Mark timed play over
+      this.declareWinner(team1Index);
+    } else {
+      // Team 2 wins
+      console.log(`Regular time finished. Team 2 (${team2Index}) wins automatically.`);
+      this.isTimedPlayOver = true; // Mark timed play over
+      this.declareWinner(team2Index);
+    }
+  }
+
+  // NEW: Check winner after extra time is complete
+  private _determineWinnerAfterExtraTime(): void {
+    const score1 = this.teamScores[0];
+    const score2 = this.teamScores[1];
+    const team1Index = this.selectedTeamIndices[0];
+    const team2Index = this.selectedTeamIndices[1];
+
+    console.log('Extra time finished. Checking final scores.');
+
+    if (score1 === score2) {
+      // Still a draw after extra time - requires manual declaration
+      this.isTimedPlayOver = true; // Enable manual winner declaration UI
+      console.log('Extra time finished with a draw. Manual winner declaration required.');
+    } else if (score1 > score2) {
+      // Team 1 wins after extra time
+      console.log(`Extra time finished. Team 1 (${team1Index}) wins automatically.`);
+      this.isTimedPlayOver = true; // Mark timed play over
+      this.declareWinner(team1Index);
+    } else {
+      // Team 2 wins after extra time
+      console.log(`Extra time finished. Team 2 (${team2Index}) wins automatically.`);
+      this.isTimedPlayOver = true; // Mark timed play over
+      this.declareWinner(team2Index);
+    }
   }
 
   // --- Scoring Logic / Helpers ---

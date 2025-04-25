@@ -5,6 +5,7 @@ export interface GameSettings {
   numTeams: number;
   numPlayersPerTeam: number;
   gameDuration: number;
+  allowExtraTime: boolean;
   teams: Team[];
   scoring: ScoringParameters;
 }
