@@ -441,12 +441,7 @@ export class GameSettingsComponent implements OnInit, OnDestroy {
       const teamControl = this.teams.at(i).get('name');
       const defaultName = this.defaultTeamColors[i % this.defaultTeamColors.length] || `Team ${i + 1}`;
       const teamName = teamControl?.value?.trim() || defaultName;
-      // Optionally patch the form value back if it was using the default
-      if (!teamControl?.value?.trim()) {
-        teamControl?.patchValue(defaultName, {emitEvent: false});
-      }
       const teamPlayers = this.players.getRawValue().slice(i * currentSettings.numPlayersPerTeam, (i + 1) * currentSettings.numPlayersPerTeam);
-      currentSettings.teams[i].name = teamName;
     }
 
     // Build settingsToSave explicitly matching GameSettings interface
